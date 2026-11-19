@@ -1,0 +1,7 @@
+# Local credentials
+config.py
+
+__pycache__/
+*.pyc
+.vscode/
+.idea/
