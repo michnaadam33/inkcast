@@ -9,6 +9,10 @@ power to the whole board, wakes it up periodically, and the Pico runs one
 short measurement cycle before telling the timer to switch it off again.
 The e-Paper keeps showing the last reading with no power at all.
 
+![inkcast mounted in a picture frame](photo.jpg)
+
+Display layout:
+
 ```
  INSIDE        |   OUTSIDE
  24.6 °C       |   8.3 °C
@@ -40,27 +44,45 @@ the remaining steps still run and missing values are shown as `--`.
 | Raspberry Pi Pico W | MicroPython firmware |
 | Waveshare Pico-ePaper-2.13 (V4) | 250×122, plugs onto the Pico |
 | BME280 module | I2C, address `0x76` (some modules use `0x77`) |
-| Adafruit TPL5110 power timer | wake-up interval set by the DELAY resistor/potentiometer |
+| TPL5110 power timer module | wake-up interval set by the on-board DELAY potentiometer |
+| DFRobot DFR0668 | USB-C Li-Po charger |
+| Akyga Li-Po 1S 3.7 V 4000 mAh | JST-BEC connector, 80×50×8 mm |
+| 3× 10 Ω resistor | in parallel (≈3.3 Ω) between TPL5110 DRV and Pico VSYS |
+| 100 µF electrolytic capacitor | bulk capacitor on VSYS |
+| 10 kΩ resistor | pull-down on the DONE line |
 | Tuya temperature & humidity sensor | outdoor readings via Tuya Cloud |
-| Battery | e.g. Li-Ion/LiPo cell or 3×AA |
+
+### Schematic
+
+![inkcast schematic](hardware/inkcast.png)
+
+The KiCad 10 project is in [`hardware/`](hardware/): open
+`hardware/inkcast.kicad_pro`. A PDF export is in
+[`hardware/inkcast.pdf`](hardware/inkcast.pdf). The project-specific symbols
+live in `hardware/inkcast.kicad_sym` and are registered by the project's own
+`sym-lib-table`, so no extra libraries are needed.
 
 ### Wiring
 
-| From | To Pico W |
+Power path: **USB-C → DFR0668 → Li-Po battery (VBAT) → TPL5110 VDD →
+TPL5110 DRV → 3× 10 Ω in parallel → Pico VSYS**. The battery feeds the
+TPL5110 directly; the Pico and the display are powered only through the
+TPL5110 output.
+
+| From | To |
 |---|---|
+| Battery + / − | DFR0668 BAT+ / BAT−, TPL5110 VDD / GND |
+| TPL5110 DRV (switched output) | 3× 10 Ω in parallel → VSYS (pin 39) |
+| 100 µF capacitor | VSYS – GND |
+| TPL5110 DONE | GP16 (pin 21), with 10 kΩ pull-down to GND |
+| TPL5110 DELAY | on-board potentiometer (sets the sleep interval) |
 | BME280 VCC | 3V3 (pin 36) |
 | BME280 GND | GND |
 | BME280 SDA | GP0 (pin 1) |
 | BME280 SCL | GP1 (pin 2) |
-| TPL5110 DONE | GP16 (pin 21) |
-| TPL5110 DRV (switched output) | VSYS (pin 39) |
-| TPL5110 GND | GND |
 | e-Paper DIN / CLK / CS | GP11 / GP10 / GP9 |
 | e-Paper DC / RST / BUSY | GP8 / GP12 / GP13 |
 | e-Paper VCC / GND | VSYS / GND |
-
-The battery connects to the TPL5110 input (VDD/GND); the Pico is powered
-only through the TPL5110 output.
 
 ## Software setup
 
@@ -128,6 +150,7 @@ pulsing the DONE pin forever – press `Ctrl+C` to stop it.
 | `bme280.py` | minimal BME280 driver |
 | `epd2in13.py` | Waveshare e-Paper 2.13" V4 driver ([source](https://github.com/waveshareteam/Pico_ePaper_Code), MIT-style license) |
 | `config.example.py` | configuration template |
+| `hardware/` | KiCad 10 schematic (`inkcast.kicad_pro`), PDF and PNG export |
 
 ## Credits
 

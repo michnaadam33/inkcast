@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "inkcast")(type "KiCad")(uri "${KIPRJMOD}/inkcast.kicad_sym")(options "")(descr "inkcast project symbols"))
+)
